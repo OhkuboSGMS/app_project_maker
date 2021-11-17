@@ -1,0 +1,16 @@
+{
+  "components": [],
+  "record": {
+    "directory": "record",
+    "interval_minutes": 15,
+    "record_raw": false,
+    "record_detection": false
+  },
+  "detection": {
+    "gpu": true,
+    "text_color" : [255,255,25],
+    "size_w":-1,
+    "size_h":500
+  },
+  "mode": ""
+}
