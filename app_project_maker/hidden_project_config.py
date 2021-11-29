@@ -61,7 +61,7 @@ class ProjectMeta:
         with open(file_path, 'w', encoding='UTF-8') as fp:
             fp.write(ProjectMeta.to_json(meta, indent=2, ensure_ascii=False))
 
-        as_hidden_file_windows(os.path.abspath(file_path))
+        # as_hidden_file_windows(os.path.abspath(file_path))
 
     @classmethod
     def read(cls, directory_path: Union[str, Path]) -> ProjectMeta:

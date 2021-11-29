@@ -155,13 +155,13 @@ class AppProjectMaker:
     def copy_project(self, project_name: str, src_project: Project) -> Project:
         """プロジェクトのコピーを作成"""
         new_path = Path(self.base_dir_path).joinpath(project_name)
-        shutil.copytree(src_project.path, new_path, dirs_exist_ok=True)
-
-        self.projects[project_name] = new_path
+        shutil.copytree(src_project.path, new_path, dirs_exist_ok=True,)
+        new_project = Project(new_path, name=project_name)
+        self.projects[project_name] = new_project
         # メタファイルを上書き
         ProjectMeta.write(new_path, project_name)
         logger.info(f"コピーされたプロジェクトを使用: {new_path.absolute()}")
-        return Project(new_path, name=project_name)
+        return new_project
 
     def remove_project(self, project: Union[str, Project]):
         if isinstance(project, Project):
@@ -207,9 +207,13 @@ class AppProjectMaker:
         return projects
 
     def save_project(self):
+        print(self.projects.values())
         manage_config = ProjectManageConfig(set(map(lambda p: str(p.path.absolute()), self.projects.values())))
         manage_config.write(self.project_manage_config_path)
 
     @property
     def project_manage_config_path(self) -> str:
         return str(self.base_dir_path.joinpath(self.project_file_path))
+
+    def __del__(self):
+        self.save_project()
