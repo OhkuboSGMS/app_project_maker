@@ -1,4 +1,3 @@
-# アプリのマスクの保存やクロップ箇所の切り出し保存など一括して引き受ける
 import os
 import shutil
 from abc import ABCMeta, abstractmethod
@@ -7,7 +6,7 @@ from typing import Dict, Type, List, Tuple, Union
 
 from loguru import logger
 
-from app_project_maker.error import DirectoryNotFoundError
+from app_project_maker.error import *
 from app_project_maker.hidden_project_config import ProjectMeta, META_HIDDEN_FILE
 from app_project_maker.project_manage_config import ProjectManageConfig
 
@@ -103,7 +102,7 @@ class AppProjectMaker:
     create_projectでアプリのルートプロジェクトを作成する
 
     """
-    project_file_path = "project.json"
+    PROJECT_CONFIG_PATH = "project.json"
 
     def __init__(self, cur_dir: str = os.path.curdir, base_dir_path: str = ".prj"):
         self.working_dir_path = Path(cur_dir)
@@ -133,10 +132,14 @@ class AppProjectMaker:
         :param project_name:
         :return:
         """
-        return os.path.exists(self.base_dir_path.joinpath(project_name))
+        return self.base_dir_path.joinpath(project_name).exists()
 
     def create_project(self, project_name: str) -> Project:
-        """新しくプロジェクトを作成"""
+        """
+        新しくプロジェクトを作成
+        :param project_name:
+        :return:
+        """
         new_project_path = Path(self.base_dir_path).joinpath(project_name)
         if not new_project_path.exists():
             logger.info(f"新規プロジェクト作成: {new_project_path.absolute()}")
@@ -152,10 +155,34 @@ class AppProjectMaker:
         self.projects[project_name] = project
         return project
 
+    def open_project(self, project_name: str) -> Project:
+        """
+        既存のプロジェクトを開く.
+        もしプロジェクトが存在しない場合はProjectNotFoundErrorを投げる
+        :param project_name:
+        :return:
+        """
+        project_path = Path(self.base_dir_path).joinpath(project_name)
+        if not project_path.exists():
+            raise ProjectNotFoundError(project_name)
+
+        project = Project(project_path, name=project_name)
+        self.projects[project_name] = project
+
+        return project
+
     def copy_project(self, project_name: str, src_project: Project) -> Project:
-        """プロジェクトのコピーを作成"""
-        new_path = Path(self.base_dir_path).joinpath(project_name)
-        shutil.copytree(src_project.path, new_path, dirs_exist_ok=True,)
+        """
+        プロジェクトのコピーを作成
+        :param project_name:
+        :param src_project:
+        :return:
+        """
+        new_path = self.base_dir_path.joinpath(project_name)
+        if new_path.exists():
+            raise ProjectOverrideError(new_path)
+
+        shutil.copytree(src_project.path, new_path, dirs_exist_ok=True, )
         new_project = Project(new_path, name=project_name)
         self.projects[project_name] = new_project
         # メタファイルを上書き
@@ -181,7 +208,7 @@ class AppProjectMaker:
             return str(self.base_dir_path.absolute())
         return str(self.base_dir_path)
 
-    def list_projects(self, other_path: List[str]) -> Tuple[Tuple[str], Tuple[Path]]:
+    def list_projects(self, other_path: List[str] = ()) -> Tuple[Tuple[str], Tuple[Path]]:
         """
         既存のプロジェクトを列挙.
         フォルダがプロジェクトフォルダかそうでないかは,プロジェクト生成時に
@@ -195,7 +222,7 @@ class AppProjectMaker:
         return prj_dir_name, prj_dir_path
 
     def load_projects(self) -> Dict[str, Project]:
-        if os.path.exists(self.project_file_path):
+        if os.path.exists(self.PROJECT_CONFIG_PATH):
             manage_config = ProjectManageConfig.read(self.project_manage_config_path)
         else:
             manage_config = ProjectManageConfig(set())
@@ -207,13 +234,13 @@ class AppProjectMaker:
         return projects
 
     def save_project(self):
-        print(self.projects.values())
+        logger.debug(f'Save Project:{list(self.projects.keys())}')
         manage_config = ProjectManageConfig(set(map(lambda p: str(p.path.absolute()), self.projects.values())))
         manage_config.write(self.project_manage_config_path)
 
     @property
     def project_manage_config_path(self) -> str:
-        return str(self.base_dir_path.joinpath(self.project_file_path))
+        return str(self.base_dir_path.joinpath(self.PROJECT_CONFIG_PATH))
 
     def __del__(self):
         self.save_project()
