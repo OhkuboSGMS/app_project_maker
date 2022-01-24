@@ -134,10 +134,12 @@ class AppProjectMaker:
         """
         return self.base_dir_path.joinpath(project_name).exists()
 
-    def create_project(self, project_name: str) -> Project:
+    def create_project(self, project_name: str, exist_ok: bool = True) -> Project:
         """
         新しくプロジェクトを作成
         :param project_name:
+        :param exist_ok: 既にプロジェクトが存在する場合に，Trueであれば，そのプロジェクトを開く，
+        Falseであれば，ProjectOverrideErrorを投げる
         :return:
         """
         new_project_path = Path(self.base_dir_path).joinpath(project_name)
@@ -145,7 +147,10 @@ class AppProjectMaker:
             logger.info(f"新規プロジェクト作成: {new_project_path.absolute()}")
             new_project_path.mkdir(parents=True, exist_ok=True)
         else:
-            logger.info(f"既存プロジェクト使用: {new_project_path.absolute()}")
+            if exist_ok:
+                logger.info(f"既存プロジェクト使用: {new_project_path.absolute()}")
+            else:
+                raise ProjectOverrideError(new_project_path)
 
         # このフォルダがAppMakerによって作成されたことを示す，隠しファイルを作成.中身はjson
         if not os.path.exists(ProjectMeta.meta_file_path(new_project_path)):
@@ -164,7 +169,7 @@ class AppProjectMaker:
         """
         project_path = Path(self.base_dir_path).joinpath(project_name)
         if not project_path.exists():
-            raise ProjectNotFoundError(project_name)
+            raise ProjectNotFoundError(f'Project Name: {project_path} Base Path: {self.base_dir_path.absolute()}')
 
         project = Project(project_path, name=project_name)
         self.projects[project_name] = project
@@ -208,6 +213,14 @@ class AppProjectMaker:
             return str(self.base_dir_path.absolute())
         return str(self.base_dir_path)
 
+    def candidate_project_path(self, name: str):
+        """
+        プロジェクト名から実際の配置パスの候補を作成
+        :param name:
+        :return:
+        """
+        return str(self.base_dir_path.joinpath(name))
+
     def list_projects(self, other_path: List[str] = ()) -> Tuple[Tuple[str], Tuple[Path]]:
         """
         既存のプロジェクトを列挙.
@@ -217,7 +230,7 @@ class AppProjectMaker:
         """
         dirs = list(self.base_dir_path.iterdir())
         dirs.extend(other_path)
-        prj_dir_path = tuple(list(filter(lambda p: p.joinpath(META_HIDDEN_FILE).exists(), dirs)))
+        prj_dir_path = tuple(filter(lambda p: p.joinpath(META_HIDDEN_FILE).exists(), dirs))
         prj_dir_name = tuple(map(lambda p: p.stem, prj_dir_path))
         return prj_dir_name, prj_dir_path
 
