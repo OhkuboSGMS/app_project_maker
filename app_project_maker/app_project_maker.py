@@ -61,7 +61,7 @@ class Project:
     def hidden_config(self):
         return ProjectMeta.read(self.path)
 
-    def add_component(self, resource_path: str, source_name: str, new_project: Type[AbstractComponent]) \
+    def add_component(self, resource_path: str, source_name: str, new_project: Type[AbstractComponent], **kwargs) \
             -> Tuple[Dict[str, str], AbstractComponent]:
         """
         プロジェクトにコンポーネントを追加
@@ -77,7 +77,7 @@ class Project:
         """
         component_path = self.path.joinpath(source_name)
         # このリソースに対するディレクトリパス
-        self.components[resource_path] = component = new_project(source_name, self.path)
+        self.components[resource_path] = component = new_project(source_name, self.path, **kwargs)
 
         # パスが現存し、機能に使えるデータがそろっている
         if component_path.exists() and component.valid():
