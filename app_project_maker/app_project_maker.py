@@ -2,7 +2,7 @@ import os
 import shutil
 from abc import ABCMeta, abstractmethod
 from pathlib import Path
-from typing import Dict, Type, List, Tuple, Union
+from typing import Dict, Type, List, Tuple, Union, Iterator
 
 from loguru import logger
 
@@ -55,6 +55,7 @@ class Project:
         self.path = path
         self.name = path.stem
         self.components = {}
+        self.etc = {}
         if name:
             self.name = name
 
@@ -93,6 +94,10 @@ class Project:
         if resource_path in self.components.keys():
             self.components.pop(resource_path)
 
+    def to_view(self, **kwargs):
+        self.etc = kwargs
+        return {'name': self.name, 'path': self.path, **self.etc}
+
 
 class AppProjectMaker:
     """
@@ -115,6 +120,9 @@ class AppProjectMaker:
 
         if not os.path.exists(self.project_manage_config_path):
             self.save_project()
+
+    def __iter__(self) -> Iterator[Project]:
+        return list(self.projects.values())
 
     def __getitem__(self, project_name: str) -> Project:
         if type(project_name) is not str:
