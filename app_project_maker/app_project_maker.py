@@ -121,9 +121,6 @@ class AppProjectMaker:
         if not os.path.exists(self.project_manage_config_path):
             self.save_project()
 
-    def __iter__(self) -> Iterator[Project]:
-        return list(self.projects.values())
-
     def __getitem__(self, project_name: str) -> Project:
         if type(project_name) is not str:
             raise TypeError(project_name, type(project_name))
@@ -241,6 +238,9 @@ class AppProjectMaker:
         prj_dir_path = tuple(filter(lambda p: p.joinpath(META_HIDDEN_FILE).exists(), dirs))
         prj_dir_name = tuple(map(lambda p: p.stem, prj_dir_path))
         return prj_dir_name, prj_dir_path
+
+    def list_projects_raw(self) -> Tuple[Project]:
+        return tuple(self.projects.values())
 
     def load_projects(self) -> Dict[str, Project]:
         if os.path.exists(self.PROJECT_CONFIG_PATH):
