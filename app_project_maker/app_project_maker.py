@@ -96,7 +96,7 @@ class Project:
 
     def to_view(self, **kwargs):
         self.etc = kwargs
-        return {'name': self.name, 'path': self.path, **self.etc}
+        return {'name': self.name, 'path': self.path, 'project': self, **self.etc}
 
 
 class AppProjectMaker:
