@@ -16,7 +16,7 @@ URL = ''
 EMAIL = ''
 AUTHOR = 'OhkuboSGMS'
 REQUIRES_PYTHON = '>=3.6.0'
-VERSION = '0.0.2'
+VERSION = '0.0.3'
 
 # What packages are required for this module to be executed?
 REQUIRED = [

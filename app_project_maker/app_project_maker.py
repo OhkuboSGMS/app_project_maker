@@ -59,7 +59,7 @@ class Project:
         if name:
             self.name = name
 
-    def hidden_config(self):
+    def hidden_config(self) -> ProjectMeta:
         return ProjectMeta.read(self.path)
 
     def add_component(self, resource_path: str, source_name: str, new_project: Type[AbstractComponent], **kwargs) \
@@ -235,6 +235,7 @@ class AppProjectMaker:
         """
         dirs = list(self.base_dir_path.iterdir())
         dirs.extend(other_path)
+        dirs = tuple(map(Path, dirs))
         prj_dir_path = tuple(filter(lambda p: p.joinpath(META_HIDDEN_FILE).exists(), dirs))
         prj_dir_name = tuple(map(lambda p: p.stem, prj_dir_path))
         return prj_dir_name, prj_dir_path
