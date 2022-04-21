@@ -1,14 +1,16 @@
 import os
 import shutil
 from abc import ABCMeta, abstractmethod
+from datetime import datetime
 from pathlib import Path
-from typing import Dict, Type, List, Tuple, Union, Iterator
+from typing import Dict, Type, List, Tuple, Union, Optional
 
 from loguru import logger
 
 from app_project_maker.error import *
 from app_project_maker.hidden_project_config import ProjectMeta, META_HIDDEN_FILE
 from app_project_maker.project_manage_config import ProjectManageConfig
+from app_project_maker.sort import ProjectSort
 
 
 class AbstractComponent(metaclass=ABCMeta):
@@ -61,6 +63,14 @@ class Project:
 
     def hidden_config(self) -> ProjectMeta:
         return ProjectMeta.read(self.path)
+
+    def update_config_date(self, time: Optional[datetime] = None) -> None:
+        meta: ProjectMeta = ProjectMeta.read(self.path)
+        if time:
+            meta.update_date = time
+        else:
+            meta.update_date = datetime
+        meta.write_current(self.path)
 
     def add_component(self, resource_path: str, source_name: str, new_project: Type[AbstractComponent], **kwargs) \
             -> Tuple[Dict[str, str], AbstractComponent]:
@@ -240,7 +250,11 @@ class AppProjectMaker:
         prj_dir_name = tuple(map(lambda p: p.stem, prj_dir_path))
         return prj_dir_name, prj_dir_path
 
-    def list_projects_raw(self) -> Tuple[Project]:
+    def list_projects_raw(self, sort: ProjectSort = ProjectSort.NONE) -> Tuple[Project]:
+        if sort == ProjectSort.DESCENT:  # 新しい順
+            return tuple(sorted(self.projects.values(), key=lambda project: project.hidden_config().update_date, reverse=True))
+        elif sort == ProjectSort.ASCENT:  # 古い順
+            return tuple(sorted(self.projects.values(), key=lambda project: project.hidden_config().update_date, reverse=False))
         return tuple(self.projects.values())
 
     def load_projects(self) -> Dict[str, Project]:

@@ -46,13 +46,18 @@ def as_hidden_file_windows(full_path: str):
 @dataclass()
 class ProjectMeta:
     name: str
-    create_date: datetime
+    update_date: datetime
     user: str
     maker: str
 
     @classmethod
     def meta_file_path(cls, directory_path: str):
         return os.path.join(directory_path, META_HIDDEN_FILE)
+
+    def write_current(self, directory_path: Union[str, Path]):
+        file_path = ProjectMeta.meta_file_path(directory_path)
+        with open(file_path, 'w', encoding='UTF-8') as fp:
+            fp.write(ProjectMeta.to_json(self, indent=2, ensure_ascii=False))
 
     @classmethod
     def write(cls, directory_path: Union[str, Path], name: str, user: str = 'No Name', maker: str = 'Project Maker'):

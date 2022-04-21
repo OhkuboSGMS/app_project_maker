@@ -1,3 +1,4 @@
+from datetime import datetime
 from pathlib import Path
 
 from app_project_maker import AppProjectMaker
@@ -17,6 +18,29 @@ def test_create_project():
     with open('projects/project.json') as f:
         assert len(f.read()) == len(ProjectManageConfig(set()).to_json(indent=2, ensure_ascii=False))
 
+    project.save_project()
+    with open('projects/project.json') as f:
+        assert len(f.read()) > 0
+
+    project.remove_all_project()
+
+
+def test_update_project():
+    project = AppProjectMaker(base_dir_path='projects')
+    assert Path('projects').exists()
+
+    new_project: Project = project.create_project('NewCompany')
+    assert Path('projects/NewCompany').is_dir()
+    assert Path('projects/NewCompany/.prj').exists()
+    assert Path('projects/project.json').exists()
+
+    with open('projects/project.json') as f:
+        assert len(f.read()) == len(ProjectManageConfig(set()).to_json(indent=2, ensure_ascii=False))
+    prev_date = new_project.hidden_config().update_date
+    new_project.update_config_date(datetime.now())
+    new_date = new_project.hidden_config().update_date
+    #  更新日の方が新しくなる
+    assert prev_date < new_date
     project.save_project()
     with open('projects/project.json') as f:
         assert len(f.read()) > 0
