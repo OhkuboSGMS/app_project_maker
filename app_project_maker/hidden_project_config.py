@@ -47,9 +47,9 @@ def as_hidden_file_windows(full_path: str):
 class ProjectMeta:
     name: str
     create_date: datetime
-    update_date: datetime
-    user: str
-    maker: str
+    update_date: datetime = datetime.now()
+    user: str = ''
+    maker: str = ''
 
     @classmethod
     def meta_file_path(cls, directory_path: str):
