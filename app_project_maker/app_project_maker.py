@@ -69,7 +69,7 @@ class Project:
         if time:
             meta.update_date = time
         else:
-            meta.update_date = datetime
+            meta.update_date = datetime.now()
         meta.write_current(self.path)
 
     def add_component(self, resource_path: str, source_name: str, new_project: Type[AbstractComponent], **kwargs) \
@@ -252,9 +252,9 @@ class AppProjectMaker:
 
     def list_projects_raw(self, sort: ProjectSort = ProjectSort.NONE) -> Tuple[Project]:
         if sort == ProjectSort.DESCENT:  # 新しい順
-            return tuple(sorted(self.projects.values(), key=lambda project: project.hidden_config().update_date, reverse=True))
+            return tuple(sorted(self.projects.values(), key=lambda project: project.hidden_config().update_date.timestamp(), reverse=True))
         elif sort == ProjectSort.ASCENT:  # 古い順
-            return tuple(sorted(self.projects.values(), key=lambda project: project.hidden_config().update_date, reverse=False))
+            return tuple(sorted(self.projects.values(), key=lambda project: project.hidden_config().update_date.timestamp(), reverse=False))
         return tuple(self.projects.values())
 
     def load_projects(self) -> Dict[str, Project]:

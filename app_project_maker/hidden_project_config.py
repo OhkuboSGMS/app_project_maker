@@ -7,7 +7,7 @@ import ctypes
 import os
 import platform
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Union
 
@@ -42,12 +42,14 @@ def as_hidden_file_windows(full_path: str):
         print(e)
 
 
+# https://stackoverflow.com/questions/56931738/python-crash-on-windows-with-a-datetime-close-to-the-epoch
+# datetime.minだとwindowsでエラー
 @dataclass_json()
 @dataclass()
 class ProjectMeta:
     name: str
     create_date: datetime
-    update_date: datetime = datetime.now()
+    update_date: datetime = datetime.fromtimestamp(86400, tz=timezone.utc)
     user: str = ''
     maker: str = ''
 
