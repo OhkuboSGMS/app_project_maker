@@ -173,6 +173,8 @@ class AppProjectMaker:
 
         project = Project(new_project_path, name=project_name)
         self.projects[project_name] = project
+        self.save_project()
+
         return project
 
     def open_project(self, project_name: str) -> Project:
@@ -208,6 +210,7 @@ class AppProjectMaker:
         # メタファイルを上書き
         ProjectMeta.write(new_path, project_name)
         logger.info(f"コピーされたプロジェクトを使用: {new_path.absolute()}")
+        self.save_project()
         return new_project
 
     def remove_project(self, project: Union[str, Project]):
@@ -216,12 +219,14 @@ class AppProjectMaker:
         if project in self.projects:
             shutil.rmtree(self.projects[project].path)
             self.projects.pop(project)
+            self.save_project()
         else:
             raise KeyError(f'削除不可.{project}は 認識されていません')
 
     def remove_all_project(self):
         shutil.rmtree(self.base_dir_path, ignore_errors=True)
         self.projects = {}
+        self.save_project()
 
     def project_root_path(self, abs: bool = True) -> str:
         if abs:
